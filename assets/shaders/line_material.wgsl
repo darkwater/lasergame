@@ -10,5 +10,9 @@ struct LineMaterial {
 fn fragment(
     mesh: VertexOutput,
 ) -> @location(0) vec4<f32> {
-    return mesh.color * material.color;
+    #ifdef MESH_COLOR
+        return mesh.color * material.color;
+    #else
+        return material.color;
+    #endif
 }

@@ -9,9 +9,9 @@ use leafwing_input_manager::{plugin::InputManagerPlugin, InputManagerBundle};
 
 use crate::{
     line_material::LineMaterial,
-    misc::{MovementSpeed, LOCKED_AXES},
+    misc::{CameraOffset, MovementSpeed, LOCKED_AXES},
     team::Team,
-    CAMERA_OFFSET,
+    utils::LookAt2d as _,
 };
 
 mod input;
@@ -23,8 +23,15 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(InputManagerPlugin::<input::Action>::default())
             .add_systems(Startup, init_player)
-            .add_systems(Update, input::update_velocity)
-            .add_systems(Update, camera_follow_player);
+            .add_systems(
+                Update,
+                (
+                    input::update_velocity,
+                    input::update_target_pos,
+                    aim_player_ship,
+                    camera_follow_player,
+                ),
+            );
     }
 }
 
@@ -72,7 +79,7 @@ fn init_player(
         .spawn((
             mesh_name,
             Mesh3d(asset_server.load("models/ship.mdl.ron")),
-            MeshMaterial3d(line_materials.add(LineMaterial::new(Color::WHITE))),
+            MeshMaterial3d(line_materials.add(Color::WHITE)),
             AnimationTarget {
                 id: anim_target_id,
                 player: animation,
@@ -91,27 +98,33 @@ fn init_player(
             Collider::sphere(1.),
             Team::Player,
             InputManagerBundle::with_map(input::input_map()),
-            MovementSpeed {
-                max_speed: 20.,
-                acceleration: 5.,
-            },
+            MovementSpeed { max_speed: 30., acceleration: 15. },
+            CameraOffset::default(),
         ))
         .add_children(&[mesh, animation]);
 
-    commands.spawn((
-        Name::new("Player aim target"),
-        Transform::default(),
-        PlayerAimTarget,
-    ));
+    commands.spawn((Name::new("Player aim target"), Transform::default(), PlayerAimTarget));
 }
 
 fn camera_follow_player(
-    query: Query<(&PlayerShip, &Transform)>,
-    mut camera_query: Query<(&Camera, &mut Transform), Without<PlayerShip>>,
+    query: Query<(&CameraOffset, &Transform), With<PlayerShip>>,
+    mut camera_query: Query<&mut Transform, (With<Camera>, Without<PlayerShip>)>,
 ) {
-    for (_, player_transform) in query.iter() {
-        for (_, mut camera_transform) in camera_query.iter_mut() {
-            camera_transform.translation = player_transform.translation + CAMERA_OFFSET;
+    for (cam_offset, player_transform) in query.iter() {
+        for mut camera_transform in camera_query.iter_mut() {
+            camera_transform.translation = player_transform.translation + cam_offset.offset;
+            camera_transform
+                .look_at(player_transform.translation + cam_offset.look_offset, Vec3::Z);
         }
     }
+}
+
+pub fn aim_player_ship(
+    mut player_ship: Query<&mut Transform, (With<PlayerShip>, Without<PlayerAimTarget>)>,
+    player_aim_target: Query<&Transform, (With<PlayerAimTarget>, Without<PlayerShip>)>,
+) {
+    let mut player_ship = player_ship.single_mut();
+    let player_aim_target = player_aim_target.single();
+
+    player_ship.look_at_2d(player_aim_target.translation);
 }

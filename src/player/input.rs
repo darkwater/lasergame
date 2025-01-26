@@ -1,7 +1,8 @@
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PrimaryWindow};
 use leafwing_input_manager::{prelude::*, Actionlike};
 
+use super::PlayerAimTarget;
 use crate::misc::MovementSpeed;
 
 #[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
@@ -36,4 +37,32 @@ pub fn update_velocity(
 
         velocity.0 += delta.extend(0.0);
     }
+}
+
+pub fn update_target_pos(
+    window: Query<&Window, With<PrimaryWindow>>,
+    camera: Query<(&Camera, &GlobalTransform)>,
+    mut player_aim_target: Query<&mut Transform, With<PlayerAimTarget>>,
+) {
+    let Ok(window) = window.get_single() else {
+        return;
+    };
+    let (camera, camera_transform) = camera.single();
+    let mut player_aim_target = player_aim_target.single_mut();
+
+    let Some(cursor_position) = window.cursor_position() else {
+        return;
+    };
+
+    let Ok(ray) = camera.viewport_to_world(camera_transform, cursor_position) else {
+        return;
+    };
+
+    let Some(distance) = ray.intersect_plane(Vec3::ZERO, InfinitePlane3d::new(Vec3::Z)) else {
+        return;
+    };
+
+    let position = ray.get_point(distance);
+
+    player_aim_target.translation = position;
 }

@@ -33,11 +33,33 @@ impl Material for LineMaterial {
     fn specialize(
         _pipeline: &MaterialPipeline<Self>,
         descriptor: &mut RenderPipelineDescriptor,
-        _layout: &MeshVertexBufferLayoutRef,
+        layout: &MeshVertexBufferLayoutRef,
         _key: MaterialPipelineKey<Self>,
     ) -> Result<(), SpecializedMeshPipelineError> {
         descriptor.primitive.polygon_mode = PolygonMode::Line;
+
+        if dbg!(layout.0.attribute_ids().contains(&Mesh::ATTRIBUTE_COLOR.id)) {
+            descriptor
+                .fragment
+                .as_mut()
+                .unwrap()
+                .shader_defs
+                .push("MESH_COLOR".into());
+        }
+
         Ok(())
+    }
+}
+
+impl From<LinearRgba> for LineMaterial {
+    fn from(color: LinearRgba) -> Self {
+        Self::new(color)
+    }
+}
+
+impl From<Color> for LineMaterial {
+    fn from(color: Color) -> Self {
+        Self::new(color)
     }
 }
 

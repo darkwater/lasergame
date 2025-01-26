@@ -1,8 +1,6 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-pub const CAMERA_OFFSET: Vec3 = Vec3::new(0., -5., 50.);
-
 pub const LOCKED_AXES: LockedAxes = LockedAxes::new()
     .lock_rotation_x()
     .lock_rotation_y()
@@ -13,4 +11,19 @@ pub struct MovementSpeed {
     pub max_speed: f32,
     /// 1 / accel = time to near max speed
     pub acceleration: f32,
+}
+
+#[derive(Component, Reflect)]
+pub struct CameraOffset {
+    pub offset: Vec3,
+    pub look_offset: Vec3,
+}
+
+impl Default for CameraOffset {
+    fn default() -> Self {
+        Self {
+            offset: Vec3::new(0., -5., 60.),
+            look_offset: Vec3::ZERO,
+        }
+    }
 }
