@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, time::Duration};
 
 use avian3d::prelude::*;
 use bevy::{
@@ -10,9 +10,10 @@ use leafwing_input_manager::{plugin::InputManagerPlugin, InputManagerBundle};
 use crate::{
     line_material::LineMaterial,
     mapgen::cell_tracker::CellTracker,
-    misc::{CameraOffset, MovementSpeed, LOCKED_AXES},
+    misc::{CameraOffset, GameLayer, MovementSpeed, LOCKED_AXES},
     team::Team,
     utils::LookAt2d as _,
+    weapon::{ActiveWeapon, Weapon},
 };
 
 mod input;
@@ -30,6 +31,7 @@ impl Plugin for PlayerPlugin {
                     input::update_velocity,
                     input::update_zoom,
                     input::update_target_pos,
+                    input::try_shoot.before(crate::weapon::shoot_active_weapon),
                     aim_player_ship,
                     camera_follow_player,
                 ),
@@ -89,6 +91,10 @@ fn init_player(
         ))
         .id();
 
+    let weapon = commands
+        .spawn(Weapon { cooldown: Duration::from_millis(150) })
+        .id();
+
     commands
         .spawn((
             Name::new("Player ship"),
@@ -98,13 +104,16 @@ fn init_player(
             RigidBody::Dynamic,
             LOCKED_AXES,
             Collider::sphere(1.),
+            Mass(10.),
             Team::Player,
+            CollisionLayers::new(GameLayer::Player, GameLayer::all_bits()),
             InputManagerBundle::with_map(input::input_map()),
-            MovementSpeed { max_speed: 30., acceleration: 15. },
+            MovementSpeed { max_speed: 36., acceleration: 15. },
             CameraOffset::default(),
             CellTracker::default(),
+            ActiveWeapon(weapon),
         ))
-        .add_children(&[mesh, animation]);
+        .add_children(&[mesh, animation, weapon]);
 
     commands.spawn((Name::new("Player aim target"), Transform::default(), PlayerAimTarget));
 }

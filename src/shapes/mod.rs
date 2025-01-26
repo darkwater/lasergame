@@ -14,15 +14,15 @@ impl Square {
 
 impl From<Square> for Mesh {
     fn from(value: Square) -> Self {
-        let points = vec![
-            Vec3::new(-value.length, -value.length, 0.) / 2.,
-            Vec3::new(value.length, -value.length, 0.) / 2.,
-            Vec3::new(value.length, value.length, 0.) / 2.,
-            Vec3::new(-value.length, value.length, 0.) / 2.,
-            Vec3::new(-value.length, -value.length, 0.) / 2.,
-        ];
-
-        let line_strip = LineStrip { points };
+        let line_strip = LineStrip {
+            points: vec![
+                Vec3::new(-value.length, -value.length, 0.) / 2.,
+                Vec3::new(value.length, -value.length, 0.) / 2.,
+                Vec3::new(value.length, value.length, 0.) / 2.,
+                Vec3::new(-value.length, value.length, 0.) / 2.,
+                Vec3::new(-value.length, -value.length, 0.) / 2.,
+            ],
+        };
 
         line_strip.into()
     }

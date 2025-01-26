@@ -14,7 +14,7 @@ use rand::Rng as _;
 
 use self::{
     assets::AssetsPlugin, line_material::LineMaterial, mapgen::MapgenPlugin, misc::CameraOffset,
-    player::PlayerPlugin,
+    player::PlayerPlugin, weapon::WeaponPlugin,
 };
 
 mod assets;
@@ -25,6 +25,7 @@ mod player;
 mod shapes;
 mod team;
 mod utils;
+mod weapon;
 
 fn main() {
     App::new()
@@ -50,13 +51,13 @@ fn main() {
             EguiPlugin,
             DefaultInspectorConfigPlugin,
         ))
-        .add_plugins((AssetsPlugin, PlayerPlugin, MapgenPlugin))
+        .add_plugins((AssetsPlugin, MapgenPlugin, PlayerPlugin, WeaponPlugin))
         .insert_resource(Gravity::ZERO)
         .add_plugins(MaterialPlugin::<LineMaterial>::default())
         .register_type::<LineMaterial>()
         .register_type::<CameraOffset>()
         .add_systems(Startup, (init_camera, init_misc))
-        .add_systems(Update, (debug_overlay, close_on_esc))
+        .add_systems(Update, (team::propagate_team, debug_overlay, close_on_esc))
         .run();
 }
 
@@ -72,24 +73,10 @@ fn init_camera(mut commands: Commands) {
     ));
 }
 
-fn init_misc(
-    mut materials: ResMut<Assets<LineMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut commands: Commands,
+fn init_misc(// mut materials: ResMut<Assets<LineMaterial>>,
+    // mut meshes: ResMut<Assets<Mesh>>,
+    // mut commands: Commands,
 ) {
-    for x in -25..=20 {
-        for y in -15..=15 {
-            commands.spawn((
-                Mesh3d(meshes.add(Mesh::from(Cuboid::from_length(4.)))),
-                MeshMaterial3d(materials.add(Color::hsv(200. + x as f32 / 20. * 100., 1., 0.2))),
-                Transform::from_translation(
-                    Vec3::X * x as f32 * 4.
-                        + Vec3::Y * y as f32 * 4.
-                        + Vec3::Z * rand::thread_rng().gen_range(-25..-21) as f32 * 2.,
-                ),
-            ));
-        }
-    }
 }
 
 fn debug_overlay(world: &mut World) {

@@ -3,7 +3,10 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use leafwing_input_manager::{prelude::*, Actionlike};
 
 use super::PlayerAimTarget;
-use crate::misc::{CameraOffset, MovementSpeed};
+use crate::{
+    misc::{CameraOffset, MovementSpeed},
+    weapon::{ActiveWeapon, ShootActiveWeapon},
+};
 
 #[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
 pub enum Action {
@@ -33,7 +36,8 @@ pub fn update_velocity(
     time: Res<Time>,
 ) {
     for (mut velocity, action_state, movement_speed) in query.iter_mut() {
-        let target_velocity = action_state.axis_pair(&Action::Move) * movement_speed.max_speed;
+        let target_velocity =
+            action_state.axis_pair(&Action::Move).clamp_length_max(1.) * movement_speed.max_speed;
 
         let mut delta = target_velocity - velocity.0.xy();
         delta *= time.delta().as_secs_f32() / (1. / movement_speed.acceleration);
@@ -82,5 +86,16 @@ pub fn update_target_pos(
 
     if player_aim_target.translation != position {
         player_aim_target.translation = position;
+    }
+}
+
+pub fn try_shoot(
+    query: Query<(Entity, &ActionState<Action>), With<ActiveWeapon>>,
+    mut events: EventWriter<ShootActiveWeapon>,
+) {
+    for (entity, action_state) in query.iter() {
+        if action_state.pressed(&Action::Shoot) {
+            events.send(ShootActiveWeapon(entity));
+        }
     }
 }

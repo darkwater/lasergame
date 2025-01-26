@@ -1,10 +1,32 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
+use crate::team::Team;
+
 pub const LOCKED_AXES: LockedAxes = LockedAxes::new()
     .lock_rotation_x()
     .lock_rotation_y()
     .lock_translation_z();
+
+#[derive(PhysicsLayer, Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum GameLayer {
+    #[default]
+    Default,
+    Player,
+    Enemy,
+    Bullet,
+    MapGeometry,
+}
+
+impl GameLayer {
+    pub fn team(&self) -> Team {
+        match self {
+            GameLayer::Player => Team::Player,
+            GameLayer::Enemy => Team::Enemy,
+            _ => Team::Unassigned,
+        }
+    }
+}
 
 #[derive(Component)]
 pub struct MovementSpeed {
