@@ -3,7 +3,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use leafwing_input_manager::{prelude::*, Actionlike};
 
 use super::PlayerAimTarget;
-use crate::misc::MovementSpeed;
+use crate::misc::{CameraOffset, MovementSpeed};
 
 #[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
 pub enum Action {
@@ -12,6 +12,8 @@ pub enum Action {
     #[actionlike(DualAxis)]
     Look,
     Shoot,
+    #[actionlike(Axis)]
+    Zoom,
 }
 
 pub fn input_map() -> InputMap<Action> {
@@ -20,6 +22,7 @@ pub fn input_map() -> InputMap<Action> {
         .with_dual_axis(Action::Move, VirtualDPad::wasd())
         .with_dual_axis(Action::Move, VirtualDPad::arrow_keys())
         .with(Action::Shoot, MouseButton::Left)
+        .with_axis(Action::Zoom, MouseScrollAxis::Y)
         // gamepad
         .with_dual_axis(Action::Move, GamepadStick::LEFT)
         .with_dual_axis(Action::Look, GamepadStick::RIGHT)
@@ -36,6 +39,19 @@ pub fn update_velocity(
         delta *= time.delta().as_secs_f32() / (1. / movement_speed.acceleration);
 
         velocity.0 += delta.extend(0.0);
+    }
+}
+
+pub fn update_zoom(mut query: Query<(&mut CameraOffset, &ActionState<Action>)>) {
+    for (mut cam_offset, action_state) in query.iter_mut() {
+        if let Some(zoom) = action_state.axis_data(&Action::Zoom) {
+            cam_offset.offset.z += zoom.value * -5.;
+
+            let min = CameraOffset::default().offset.z;
+            if cam_offset.offset.z < min {
+                cam_offset.offset.z = min;
+            }
+        }
     }
 }
 
@@ -64,5 +80,7 @@ pub fn update_target_pos(
 
     let position = ray.get_point(distance);
 
-    player_aim_target.translation = position;
+    if player_aim_target.translation != position {
+        player_aim_target.translation = position;
+    }
 }

@@ -13,13 +13,16 @@ use bevy_inspector_egui::{bevy_egui, bevy_inspector, DefaultInspectorConfigPlugi
 use rand::Rng as _;
 
 use self::{
-    assets::AssetsPlugin, line_material::LineMaterial, misc::CameraOffset, player::PlayerPlugin,
+    assets::AssetsPlugin, line_material::LineMaterial, mapgen::MapgenPlugin, misc::CameraOffset,
+    player::PlayerPlugin,
 };
 
 mod assets;
 mod line_material;
+mod mapgen;
 mod misc;
 mod player;
+mod shapes;
 mod team;
 mod utils;
 
@@ -29,7 +32,7 @@ fn main() {
             DefaultPlugins
                 .set(LogPlugin {
                     level: bevy::log::Level::INFO,
-                    filter: "emitter=trace,wgpu=warn,big_brain=debug".to_string(),
+                    filter: "lasergame=trace,wgpu=warn,big_brain=debug".to_string(),
                     ..default()
                 })
                 .set(WindowPlugin {
@@ -44,11 +47,10 @@ fn main() {
                 }),
             FrameTimeDiagnosticsPlugin,
             PhysicsPlugins::default(),
-            AssetsPlugin,
-            PlayerPlugin,
             EguiPlugin,
             DefaultInspectorConfigPlugin,
         ))
+        .add_plugins((AssetsPlugin, PlayerPlugin, MapgenPlugin))
         .insert_resource(Gravity::ZERO)
         .add_plugins(MaterialPlugin::<LineMaterial>::default())
         .register_type::<LineMaterial>()
@@ -79,11 +81,11 @@ fn init_misc(
         for y in -15..=15 {
             commands.spawn((
                 Mesh3d(meshes.add(Mesh::from(Cuboid::from_length(4.)))),
-                MeshMaterial3d(materials.add(Color::hsv(200. + x as f32 / 20. * 100., 1., 0.4))),
+                MeshMaterial3d(materials.add(Color::hsv(200. + x as f32 / 20. * 100., 1., 0.2))),
                 Transform::from_translation(
                     Vec3::X * x as f32 * 4.
                         + Vec3::Y * y as f32 * 4.
-                        + Vec3::Z * rand::thread_rng().gen_range(-5..-1) as f32 * 2.,
+                        + Vec3::Z * rand::thread_rng().gen_range(-25..-21) as f32 * 2.,
                 ),
             ));
         }

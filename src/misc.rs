@@ -22,8 +22,12 @@ pub struct CameraOffset {
 impl Default for CameraOffset {
     fn default() -> Self {
         Self {
-            offset: Vec3::new(0., -5., 60.),
+            offset: Vec3::new(0., -10., 80.),
             look_offset: Vec3::ZERO,
         }
     }
 }
+
+#[derive(Component)]
+pub struct DebugVisibility;
+// TODO: implement
