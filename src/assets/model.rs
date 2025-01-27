@@ -1,14 +1,11 @@
-use bevy::{
-    asset::{AssetLoader, RenderAssetUsages},
-    prelude::*,
-    render::render_resource::PrimitiveTopology,
-    utils::ConditionalSendFuture,
-};
+use bevy::{asset::AssetLoader, prelude::*, utils::ConditionalSendFuture};
 use serde::{Deserialize, Serialize};
+
+use crate::line_material::LineList;
 
 #[derive(Serialize, Deserialize, TypePath)]
 pub struct Model {
-    pub lines: Vec<(Vec3, Vec3)>,
+    pub lines: Vec<[Vec3; 2]>,
     pub colors: ColorSpec,
 }
 
@@ -16,7 +13,20 @@ pub struct Model {
 pub enum ColorSpec {
     Uniform(LinearRgba),
     PerLine(Vec<LinearRgba>),
-    PerVertex(Vec<(LinearRgba, LinearRgba)>),
+    PerVertex(Vec<[LinearRgba; 2]>),
+}
+
+impl From<Model> for LineList {
+    fn from(value: Model) -> Self {
+        LineList {
+            colors: match value.colors {
+                ColorSpec::PerVertex(colors) => colors,
+                ColorSpec::PerLine(colors) => colors.into_iter().map(|c| [c, c]).collect(),
+                ColorSpec::Uniform(color) => vec![[color; 2]; value.lines.len()],
+            },
+            lines: value.lines,
+        }
+    }
 }
 
 pub struct ModelLoader;
@@ -36,26 +46,8 @@ impl AssetLoader for ModelLoader {
             reader.read_to_end(&mut bytes).await?;
 
             let model: Model = ron::de::from_bytes(&bytes)?;
-            let mut mesh = Mesh::new(PrimitiveTopology::LineList, RenderAssetUsages::RENDER_WORLD);
 
-            let colors: Vec<_> = match model.colors {
-                ColorSpec::PerVertex(colors) => colors
-                    .iter()
-                    .flat_map(|(a, b)| [a.to_f32_array(), b.to_f32_array()])
-                    .collect(),
-                ColorSpec::PerLine(colors) => colors
-                    .into_iter()
-                    .flat_map(|c| [c.to_f32_array(), c.to_f32_array()])
-                    .collect(),
-                ColorSpec::Uniform(color) => vec![color.to_f32_array(); model.lines.len() * 2],
-            };
-
-            let vertices: Vec<_> = model.lines.into_iter().flat_map(|(a, b)| [a, b]).collect();
-
-            mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
-            mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-
-            Ok(mesh)
+            Ok(LineList::from(model).into())
         }
     }
 

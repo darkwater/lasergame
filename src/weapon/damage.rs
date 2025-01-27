@@ -34,6 +34,7 @@ pub struct Damage {
 /// transferred to the entity that fired the weapon.
 #[derive(Component)]
 pub struct TransferCredit(pub Entity);
+// TODO: propagate through ActiveWeapon
 
 #[derive(Debug, Clone, Copy)]
 pub enum DamageType {

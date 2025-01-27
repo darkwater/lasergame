@@ -1,7 +1,9 @@
+#![feature(array_windows)]
 #![warn(clippy::unused_trait_names)]
 
 use avian3d::{prelude::Gravity, PhysicsPlugins};
 use bevy::{
+    asset::AssetMetaCheck,
     core_pipeline::bloom::Bloom,
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     log::LogPlugin,
@@ -10,7 +12,6 @@ use bevy::{
 };
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 use bevy_inspector_egui::{bevy_egui, bevy_inspector, DefaultInspectorConfigPlugin};
-use rand::Rng as _;
 
 use self::{
     assets::AssetsPlugin, line_material::LineMaterial, mapgen::MapgenPlugin, misc::CameraOffset,
@@ -31,6 +32,10 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins
+                .set(AssetPlugin {
+                    meta_check: AssetMetaCheck::Never,
+                    ..default()
+                })
                 .set(LogPlugin {
                     level: bevy::log::Level::INFO,
                     filter: "lasergame=trace,wgpu=warn,big_brain=debug".to_string(),
@@ -46,6 +51,7 @@ fn main() {
                     }),
                     ..default()
                 }),
+            #[cfg(not(target_arch = "wasm32"))]
             FrameTimeDiagnosticsPlugin,
             PhysicsPlugins::default(),
             EguiPlugin,
@@ -91,7 +97,8 @@ fn debug_overlay(world: &mut World) {
     let ctx = egui_context.get_mut();
 
     egui::Window::new("Diagnostics")
-        .default_open(false)
+        .default_open(true)
+        .default_pos((10., 10.))
         .show(ctx, |ui| {
             let diagnostics = world.get_resource::<DiagnosticsStore>().unwrap();
 
@@ -104,6 +111,7 @@ fn debug_overlay(world: &mut World) {
 
     egui::Window::new("Inspector")
         .default_open(false)
+        .default_pos((10., 110.))
         .show(ctx, |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
                 bevy_inspector::ui_for_world(world, ui);

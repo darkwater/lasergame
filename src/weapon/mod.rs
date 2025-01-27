@@ -1,9 +1,8 @@
-use std::time::{Duration, Instant};
-
-use avian3d::prelude::{
-    Collider, CollisionLayers, LinearVelocity, PhysicsLayer as _, RigidBody, Sensor,
+use avian3d::prelude::{Collider, CollisionLayers, LinearVelocity, PhysicsLayer as _, RigidBody};
+use bevy::{
+    prelude::*,
+    utils::{Duration, Instant},
 };
-use bevy::prelude::*;
 
 use self::damage::{Damage, DamageType, ImpactDamage};
 use crate::{

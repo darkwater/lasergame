@@ -55,12 +55,12 @@ fn generate(
         let mut rng = rand::thread_rng();
 
         commands.spawn((
-            Mesh3d(meshes.add(Square::new(Cell::SIZE * 0.999))),
-            MeshMaterial3d(materials.add(LinearRgba::RED * 0.1)),
+            Mesh3d(meshes.add(Square::new(Cell::SIZE * 0.99))),
+            MeshMaterial3d(materials.add(LinearRgba::RED * 0.01)),
             Transform::from_translation(Vec3::new(
                 cell.x as f32 * Cell::SIZE,
                 cell.y as f32 * Cell::SIZE,
-                0.,
+                -2.,
             )),
             DebugVisibility,
         ));
@@ -90,7 +90,7 @@ fn generate(
         for x in -2..=2 {
             for y in -2..=2 {
                 commands.spawn((
-                    Mesh3d(meshes.add(Cuboid::from_length(4.))),
+                    Mesh3d(meshes.add(Square::new(4.))),
                     MeshMaterial3d(materials.add(Color::hsv(
                         200. + x as f32 / 20. * 100.,
                         1.,

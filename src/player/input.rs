@@ -29,6 +29,7 @@ pub fn input_map() -> InputMap<Action> {
         // gamepad
         .with_dual_axis(Action::Move, GamepadStick::LEFT)
         .with_dual_axis(Action::Look, GamepadStick::RIGHT)
+        .with(Action::Shoot, GamepadButton::RightTrigger2)
 }
 
 pub fn update_velocity(
@@ -51,10 +52,10 @@ pub fn update_zoom(mut query: Query<(&mut CameraOffset, &ActionState<Action>)>) 
         if let Some(zoom) = action_state.axis_data(&Action::Zoom) {
             cam_offset.offset.z += zoom.value * -5.;
 
-            let min = CameraOffset::default().offset.z;
-            if cam_offset.offset.z < min {
-                cam_offset.offset.z = min;
-            }
+            // let min = CameraOffset::default().offset.z;
+            // if cam_offset.offset.z < min {
+            //     cam_offset.offset.z = min;
+            // }
         }
     }
 }
