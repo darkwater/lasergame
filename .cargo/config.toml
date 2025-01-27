@@ -1,5 +1,3 @@
-# NOTE: probably dont do any of this in CI/release
-
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
 rustflags = [
@@ -10,8 +8,8 @@ rustflags = [
 [unstable]
 codegen-backend = true
 
-# [profile.dev]
-# codegen-backend = "cranelift"
+[profile.dev]
+codegen-backend = "cranelift"
 
 [profile.dev.package."*"]
 codegen-backend = "llvm"
