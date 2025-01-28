@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use avian3d::prelude::{Collider, CollisionLayers, PhysicsLayer, RigidBody};
+use avian3d::prelude::{Collider, CollisionLayers, PhysicsLayer as _, RigidBody};
 use bevy::{prelude::*, utils::HashMap};
 use rand::Rng as _;
 
@@ -45,6 +45,7 @@ pub struct GenerateCell(pub Cell);
 fn generate(
     mut events: EventReader<GenerateCell>,
     mut state: ResMut<MapgenState>,
+    asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<LineMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut commands: Commands,
@@ -66,24 +67,27 @@ fn generate(
         ));
 
         for _ in 0..rng.gen_range(1..=10) {
-            let length = rng.gen_range(2.0..10.0);
+            let size = rng.gen_range(2.0..10.0);
             commands.spawn((
-                Mesh3d(meshes.add(Square::new(length))),
+                Mesh3d(asset_server.load("models/testcube.mdl.json")),
                 MeshMaterial3d(materials.add(Color::hsv(
                     rng.gen_range(0.0..360.0),
-                    0.2,
-                    rng.gen_range(1.0..10.0),
+                    0.1,
+                    rng.gen_range(0.8..5.0),
                 ))),
                 RigidBody::Static,
-                Collider::cuboid(length, length, length),
+                Collider::cuboid(1., 1., 1.),
                 CollisionLayers::new(GameLayer::MapGeometry, GameLayer::all_bits()),
-                Transform::from_translation(Vec3::new(
-                    cell.center().x + rng.gen_range(-Cell::SIZE..Cell::SIZE) / 2.,
-                    cell.center().y + rng.gen_range(-Cell::SIZE..Cell::SIZE) / 2.,
-                    0.,
-                ))
-                .with_rotation(Quat::from_rotation_z(rng.gen_range(-PI..PI))),
-                Health::max(length * 10.),
+                Transform {
+                    translation: Vec3::new(
+                        cell.center().x + rng.gen_range(-Cell::SIZE..Cell::SIZE) / 2.,
+                        cell.center().y + rng.gen_range(-Cell::SIZE..Cell::SIZE) / 2.,
+                        0.,
+                    ),
+                    rotation: Quat::from_rotation_z(rng.gen_range(-PI..PI)),
+                    scale: Vec3::splat(size),
+                },
+                Health::max(size * 10.),
             ));
         }
 

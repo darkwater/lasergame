@@ -28,12 +28,15 @@ impl Plugin for PlayerPlugin {
             .add_systems(
                 Update,
                 (
-                    input::update_velocity,
                     input::update_zoom,
-                    input::update_target_pos,
-                    input::try_shoot.before(crate::weapon::shoot_active_weapon),
-                    aim_player_ship,
-                    camera_follow_player,
+                    (
+                        input::update_velocity,
+                        camera_follow_player,
+                        input::update_target_pos,
+                        aim_player_ship,
+                        input::try_shoot.before(crate::weapon::shoot_active_weapon),
+                    )
+                        .chain(),
                 ),
             );
     }
@@ -82,7 +85,7 @@ fn init_player(
     let mesh = commands
         .spawn((
             mesh_name,
-            Mesh3d(asset_server.load("models/ship.mdl.ron")),
+            Mesh3d(asset_server.load("models/ship.mdl.json")),
             MeshMaterial3d(line_materials.add(Color::WHITE)),
             AnimationTarget {
                 id: anim_target_id,

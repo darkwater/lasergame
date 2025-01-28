@@ -12,4 +12,3 @@ impl LookAt2d for Transform {
         self.rotation = Quat::from_rotation_z(direction.y.atan2(direction.x));
     }
 }
-

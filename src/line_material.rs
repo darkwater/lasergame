@@ -43,7 +43,7 @@ impl LineMaterial {
         Self {
             uniform: LineMaterialUniform {
                 color: color.into(),
-                line_width: 2.,
+                line_width: 100.,
                 depth_bias: 0.,
                 line_scale: 1.,
                 gap_scale: 1.,
@@ -68,12 +68,7 @@ impl Material for LineMaterial {
         _key: MaterialPipelineKey<Self>,
     ) -> Result<(), SpecializedMeshPipelineError> {
         // if layout.0.attribute_ids().contains(&Mesh::ATTRIBUTE_COLOR.id) {
-        //     descriptor
-        //         .fragment
-        //         .as_mut()
-        //         .unwrap()
-        //         .shader_defs
-        //         .push("MESH_COLOR".into());
+        descriptor.vertex.shader_defs.push("PERSPECTIVE".into());
         // }
 
         let vertex_layout = layout.0.get_layout(&[
