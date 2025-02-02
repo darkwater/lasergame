@@ -58,7 +58,7 @@ fn generate(
 
         commands.spawn((
             Mesh3d(meshes.add(Square::new(Cell::SIZE * 0.99))),
-            MeshMaterial3d(materials.add(LinearRgba::RED * 0.01)),
+            MeshMaterial3d(materials.add((LinearRgba::RED * 0.01).with_alpha(1.0))),
             Transform::from_translation(Vec3::new(
                 cell.x as f32 * Cell::SIZE,
                 cell.y as f32 * Cell::SIZE,
