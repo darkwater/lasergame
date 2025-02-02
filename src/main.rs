@@ -12,6 +12,8 @@ use bevy::{
 };
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 use bevy_inspector_egui::{bevy_egui, bevy_inspector, DefaultInspectorConfigPlugin};
+use enemy::EnemyPlugin;
+use team::Team;
 
 use self::{
     assets::AssetsPlugin, line_material::LineMaterial, mapgen::MapgenPlugin, misc::CameraOffset,
@@ -19,6 +21,7 @@ use self::{
 };
 
 mod assets;
+mod enemy;
 mod line_material;
 mod mapgen;
 mod misc;
@@ -57,13 +60,24 @@ fn main() {
             EguiPlugin,
             DefaultInspectorConfigPlugin,
         ))
-        .add_plugins((AssetsPlugin, MapgenPlugin, PlayerPlugin, WeaponPlugin))
+        .add_plugins((AssetsPlugin, EnemyPlugin, MapgenPlugin, PlayerPlugin, WeaponPlugin))
         .insert_resource(Gravity::ZERO)
         .add_plugins(MaterialPlugin::<LineMaterial>::default())
-        .register_type::<LineMaterial>()
         .register_type::<CameraOffset>()
+        .register_type::<LineMaterial>()
+        .register_type::<Team>()
+        .register_asset_reflect::<LineMaterial>()
         .add_systems(Startup, (init_camera, init_misc))
-        .add_systems(Update, (team::propagate_team, debug_overlay, close_on_esc))
+        .add_systems(
+            Update,
+            (
+                team::propagate_team,
+                misc::target_movement,
+                misc::expire,
+                debug_overlay,
+                close_on_esc,
+            ),
+        )
         .run();
 }
 

@@ -1,10 +1,9 @@
-use avian3d::prelude::*;
 use bevy::{prelude::*, window::PrimaryWindow};
 use leafwing_input_manager::{prelude::*, Actionlike};
 
 use super::PlayerAimTarget;
 use crate::{
-    misc::{CameraOffset, MovementSpeed},
+    misc::{CameraOffset, MovementSpeed, TargetMovement},
     weapon::{ActiveWeapon, ShootActiveWeapon},
 };
 
@@ -32,18 +31,12 @@ pub fn input_map() -> InputMap<Action> {
         .with(Action::Shoot, GamepadButton::RightTrigger2)
 }
 
-pub fn update_velocity(
-    mut query: Query<(&mut LinearVelocity, &ActionState<Action>, &MovementSpeed)>,
-    time: Res<Time>,
+pub fn update_movement(
+    mut query: Query<(&ActionState<Action>, &MovementSpeed, &mut TargetMovement)>,
 ) {
-    for (mut velocity, action_state, movement_speed) in query.iter_mut() {
-        let target_velocity =
+    for (action_state, movement_speed, mut target_movement) in query.iter_mut() {
+        target_movement.0 =
             action_state.axis_pair(&Action::Move).clamp_length_max(1.) * movement_speed.max_speed;
-
-        let mut delta = target_velocity - velocity.0.xy();
-        delta *= time.delta().as_secs_f32() / (1. / movement_speed.acceleration);
-
-        velocity.0 += delta.extend(0.0);
     }
 }
 

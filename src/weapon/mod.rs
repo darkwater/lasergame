@@ -1,16 +1,13 @@
-use avian3d::prelude::{Collider, CollisionLayers, LinearVelocity, PhysicsLayer as _, RigidBody};
+use avian3d::prelude::{CollisionLayers, LinearVelocity, PhysicsLayer as _};
 use bevy::{
     prelude::*,
     utils::{Duration, Instant},
 };
+use bullet::Bullet;
 
-use self::damage::{Damage, DamageType, ImpactDamage};
-use crate::{
-    line_material::{LineMaterial, LineStrip},
-    misc::GameLayer,
-    team::Team,
-};
+use crate::{misc::GameLayer, team::Team};
 
+pub mod bullet;
 pub mod damage;
 
 #[derive(Default)]
@@ -22,9 +19,11 @@ impl Plugin for WeaponPlugin {
             .add_event::<ShootActiveWeapon>()
             .add_event::<damage::DamageEvent>()
             .add_event::<damage::FatalDamage>()
+            .add_systems(Startup, bullet::init_resource)
             .add_systems(
                 Update,
                 (
+                    bullet::populate,
                     damage::contact_damage,
                     damage::apply_damage,
                     damage::despawn_on_fatal_damage,
@@ -60,8 +59,6 @@ pub struct WeaponState {
 fn shoot(
     mut events: EventReader<Shoot>,
     mut weapons: Query<(&Weapon, &mut WeaponState, &GlobalTransform, Option<&Team>)>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<LineMaterial>>,
     mut commands: Commands,
 ) {
     for Shoot(entity) in events.read() {
@@ -73,27 +70,15 @@ fn shoot(
                 state.last_used = Some(Instant::now());
 
                 commands.spawn((
-                    Mesh3d(meshes.add(LineStrip { points: vec![Vec3::ZERO, Vec3::X] })),
-                    MeshMaterial3d(materials.add(LinearRgba::RED * 50.)),
+                    Bullet,
                     Transform::from_translation(transform.translation() + transform.right() * 1.)
                         .with_scale(Vec3::splat(2.))
                         .with_rotation(transform.rotation()),
-                    RigidBody::Kinematic,
                     LinearVelocity(transform.right() * 50.),
-                    Collider::segment(Vec3::ZERO, Vec3::X),
-                    // Sensor,
                     CollisionLayers::new(
                         GameLayer::Bullet,
                         GameLayer::all_bits() ^ team.unwrap().game_layer().to_bits(),
                     ),
-                    ImpactDamage {
-                        damage: Damage {
-                            value: 10.,
-                            ty: DamageType::Energy,
-                            credit: Some(*entity),
-                        },
-                        despawn_on_impact: true,
-                    },
                 ));
             }
         }

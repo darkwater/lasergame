@@ -10,7 +10,7 @@ use leafwing_input_manager::{plugin::InputManagerPlugin, InputManagerBundle};
 use crate::{
     line_material::LineMaterial,
     mapgen::cell_tracker::CellTracker,
-    misc::{CameraOffset, GameLayer, MovementSpeed, LOCKED_AXES},
+    misc::{CameraOffset, GameLayer, MovementSpeed, TargetMovement, LOCKED_AXES},
     team::Team,
     utils::LookAt2d as _,
     weapon::{ActiveWeapon, Weapon},
@@ -30,7 +30,7 @@ impl Plugin for PlayerPlugin {
                 (
                     input::update_zoom,
                     (
-                        input::update_velocity,
+                        input::update_movement,
                         camera_follow_player,
                         input::update_target_pos,
                         aim_player_ship,

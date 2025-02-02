@@ -27,18 +27,19 @@ pub struct ImpactDamage {
 pub struct Damage {
     pub value: f32,
     pub ty: DamageType,
-    pub credit: Option<Entity>,
+    // pub credit: Option<Entity>,
 }
 
-/// Transfer credit to the specified entity. Useful for weapons, where the credit should be
-/// transferred to the entity that fired the weapon.
-#[derive(Component)]
-pub struct TransferCredit(pub Entity);
-// TODO: propagate through ActiveWeapon
+// /// Transfer credit to the specified entity. Useful for weapons, where the credit should be
+// /// transferred to the entity that fired the weapon.
+// #[derive(Component)]
+// pub struct TransferCredit(pub Entity);
+// // TODO: propagate through ActiveWeapon
 
 #[derive(Debug, Clone, Copy)]
 pub enum DamageType {
     Energy,
+    Impact,
     Explosion,
 }
 
@@ -58,20 +59,26 @@ pub struct FatalDamage {
 }
 
 pub fn contact_damage(
-    bullets: Query<(Entity, &ImpactDamage, &CollidingEntities)>,
-    targets: Query<Entity, With<Health>>,
+    sources: Query<(Entity, &Team, &ImpactDamage, &CollidingEntities)>,
+    targets: Query<(Entity, &Team), With<Health>>,
     mut writer: EventWriter<DamageEvent>,
     mut commands: Commands,
 ) {
-    for (bullet, impact_damage, colliding_entities) in bullets.iter() {
-        for target in colliding_entities.0.iter() {
-            if let Ok(target) = targets.get(*target) {
-                writer.send(DamageEvent { target, damage: impact_damage.damage });
+    for (source, source_team, impact_damage, colliding_entities) in sources.iter() {
+        for ent in colliding_entities.0.iter() {
+            let Ok((target, target_team)) = targets.get(*ent) else {
+                continue;
+            };
 
-                if impact_damage.despawn_on_impact {
-                    trace!("despawning bullet {entity:?} after impact", entity = bullet);
-                    commands.entity(bullet).despawn();
-                }
+            if !source_team.can_damage(target_team) {
+                continue;
+            }
+
+            writer.send(DamageEvent { target, damage: impact_damage.damage });
+
+            if impact_damage.despawn_on_impact {
+                trace!("despawning bullet {entity:?} after impact", entity = source);
+                commands.entity(source).despawn();
             }
         }
     }

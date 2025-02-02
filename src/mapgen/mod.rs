@@ -1,11 +1,12 @@
 use std::f32::consts::PI;
 
-use avian3d::prelude::{Collider, CollisionLayers, PhysicsLayer as _, RigidBody};
+use avian3d::prelude::{Collider, CollisionLayers, PhysicsLayer as _, Restitution, RigidBody};
 use bevy::{prelude::*, utils::HashMap};
 use rand::Rng as _;
 
 use self::{cell::Cell, cell_tracker::CellTracker};
 use crate::{
+    enemy::dot::DotEnemy,
     line_material::LineMaterial,
     misc::{DebugVisibility, GameLayer},
     player::PlayerShip,
@@ -61,7 +62,7 @@ fn generate(
             Transform::from_translation(Vec3::new(
                 cell.x as f32 * Cell::SIZE,
                 cell.y as f32 * Cell::SIZE,
-                -2.,
+                0.,
             )),
             DebugVisibility,
         ));
@@ -87,8 +88,21 @@ fn generate(
                     rotation: Quat::from_rotation_z(rng.gen_range(-PI..PI)),
                     scale: Vec3::splat(size),
                 },
-                Health::max(size * 10.),
+                Health::max(size * 100.),
+                Restitution::new(1.5),
             ));
+        }
+
+        for _ in 0..rng.gen_range(1..=10) {
+            commands.spawn((DotEnemy, Transform {
+                translation: Vec3::new(
+                    cell.center().x + rng.gen_range(-Cell::SIZE..Cell::SIZE) / 2.,
+                    cell.center().y + rng.gen_range(-Cell::SIZE..Cell::SIZE) / 2.,
+                    0.,
+                ),
+                rotation: rng.gen(),
+                scale: Vec3::splat(1.),
+            }));
         }
 
         for x in -2..=2 {

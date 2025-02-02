@@ -12,8 +12,8 @@ use bevy::{
 };
 
 #[derive(Reflect, ShaderType, Debug, Clone)]
-pub struct LineMaterialUniform {
-    pub color: LinearRgba,
+struct LineMaterialUniform {
+    color: LinearRgba,
     pub line_width: f32,
     pub depth_bias: f32,
     pub line_scale: f32,
