@@ -23,7 +23,6 @@ impl Plugin for WeaponPlugin {
             .add_systems(
                 Update,
                 (
-                    bullet::populate,
                     damage::contact_damage,
                     damage::apply_damage,
                     damage::despawn_on_fatal_damage,

@@ -17,7 +17,6 @@ impl Plugin for EnemyPlugin {
             (
                 behaviour::attract::activate.run_if(on_timer(Duration::from_millis(200))),
                 behaviour::attract::follow.run_if(on_timer(Duration::from_millis(200))),
-                dot::populate,
             ),
         );
     }

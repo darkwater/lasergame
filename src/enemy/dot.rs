@@ -1,7 +1,8 @@
-use std::ops::Sub;
-
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{
+    ecs::{component::ComponentId, world::DeferredWorld},
+    prelude::*,
+};
 
 use super::behaviour::attract::AttractBehaviour;
 use crate::{
@@ -12,6 +13,7 @@ use crate::{
 };
 
 #[derive(Component)]
+#[component(on_add = populate)]
 pub struct DotEnemy;
 
 #[derive(Resource)]
@@ -31,28 +33,26 @@ pub fn init_resource(
     commands.insert_resource(DotEnemyResources { mesh, material: dbg!(material) });
 }
 
-pub fn populate(
-    dots: Query<Entity, Added<DotEnemy>>,
-    res: Res<DotEnemyResources>,
-    mut commands: Commands,
-) {
-    for ent in dots.iter() {
-        commands.entity(ent).insert_if_new((
-            Mesh3d(res.mesh.clone()),
-            MeshMaterial3d(res.material.clone()),
-            LOCKED_AXES,
-            Team::Enemy,
-            RigidBody::Dynamic,
-            Restitution::new(0.5),
-            Collider::sphere(0.5),
-            CollisionLayers::new(GameLayer::Enemy, GameLayer::all_bits()),
-            Health::max(10.),
-            ImpactDamage {
-                damage: Damage { value: 10., ty: DamageType::Impact },
-                despawn_on_impact: false,
-            },
-            AttractBehaviour::new(50.),
-            MovementSpeed { max_speed: 50., acceleration: 1. },
-        ));
-    }
+pub fn populate(mut world: DeferredWorld, entity: Entity, _id: ComponentId) {
+    let res = world.resource::<DotEnemyResources>();
+    let mesh = res.mesh.clone();
+    let material = res.material.clone();
+
+    world.commands().entity(entity).insert_if_new((
+        Mesh3d(mesh),
+        MeshMaterial3d(material),
+        LOCKED_AXES,
+        Team::Enemy,
+        RigidBody::Dynamic,
+        Restitution::new(0.5),
+        Collider::sphere(0.5),
+        CollisionLayers::new(GameLayer::Enemy, GameLayer::all_bits()),
+        Health::max(10.),
+        ImpactDamage {
+            damage: Damage { value: 10., ty: DamageType::Impact },
+            despawn_on_impact: false,
+        },
+        AttractBehaviour::new(50.),
+        MovementSpeed { max_speed: 50., acceleration: 1. },
+    ));
 }

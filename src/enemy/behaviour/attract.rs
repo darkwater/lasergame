@@ -31,7 +31,7 @@ pub fn activate(
         let enemy_pos = transform.translation();
         let dir = player_pos - enemy_pos;
 
-        if dir.length() < behaviour.activation_range {
+        if dir.length_squared() < behaviour.activation_range.powi(2) {
             debug!("Enemy activated");
             behaviour.tracking = Some(player);
         }

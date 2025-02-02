@@ -8,7 +8,7 @@ pub struct CellTracker(pub Cell);
 pub fn update(
     mut cells: Query<
         (&mut CellTracker, &GlobalTransform),
-        Or<(Added<CellTracker>, Added<GlobalTransform>, Changed<GlobalTransform>)>,
+        Or<(Added<CellTracker>, Changed<GlobalTransform>)>,
     >,
 ) {
     for (mut cell, transform) in cells.iter_mut() {
