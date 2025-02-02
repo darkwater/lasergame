@@ -8,6 +8,7 @@ use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     log::LogPlugin,
     prelude::*,
+    utils::Duration,
     window::PrimaryWindow,
 };
 use bevy_egui::{egui, EguiContext, EguiPlugin};
@@ -93,10 +94,8 @@ fn init_camera(mut commands: Commands) {
     ));
 }
 
-fn init_misc(// mut materials: ResMut<Assets<LineMaterial>>,
-    // mut meshes: ResMut<Assets<Mesh>>,
-    // mut commands: Commands,
-) {
+fn init_misc(mut time: ResMut<Time<Virtual>>) {
+    time.set_max_delta(Duration::from_secs_f32(1. / 30.));
 }
 
 fn debug_overlay(world: &mut World) {
