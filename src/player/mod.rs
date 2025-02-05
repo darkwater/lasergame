@@ -9,8 +9,7 @@ use leafwing_input_manager::{plugin::InputManagerPlugin, InputManagerBundle};
 
 use crate::{
     line_material::LineMaterial,
-    mapgen::cell_tracker::CellTracker,
-    misc::{CameraOffset, GameLayer, MovementSpeed, TargetMovement, LOCKED_AXES},
+    misc::{CameraOffset, GameLayer, MovementSpeed, LOCKED_AXES},
     team::Team,
     utils::LookAt2d as _,
     weapon::{ActiveWeapon, Weapon},
@@ -29,6 +28,7 @@ impl Plugin for PlayerPlugin {
                 Update,
                 (
                     input::update_zoom,
+                    input::update_debuglook,
                     (
                         input::update_movement,
                         camera_follow_player,
@@ -113,7 +113,6 @@ fn init_player(
             InputManagerBundle::with_map(input::input_map()),
             MovementSpeed { max_speed: 36., acceleration: 15. },
             CameraOffset::default(),
-            CellTracker::default(),
             ActiveWeapon(weapon),
         ))
         .add_children(&[mesh, animation, weapon]);

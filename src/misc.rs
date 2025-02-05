@@ -59,7 +59,7 @@ pub struct CameraOffset {
 impl Default for CameraOffset {
     fn default() -> Self {
         Self {
-            offset: Vec3::new(0., -10., 100.),
+            offset: Vec3::new(0., -10., 110.),
             look_offset: Vec3::ZERO,
         }
     }

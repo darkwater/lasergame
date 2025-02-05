@@ -1,4 +1,5 @@
 #![feature(array_windows)]
+#![feature(extract_if)]
 #![warn(clippy::unused_trait_names)]
 
 use avian3d::{prelude::Gravity, PhysicsPlugins};
@@ -109,22 +110,18 @@ fn debug_overlay(world: &mut World) {
 
     let ctx = egui_context.get_mut();
 
-    egui::Window::new("Diagnostics")
-        .default_open(true)
-        .default_pos((10., 10.))
-        .show(ctx, |ui| {
-            let diagnostics = world.get_resource::<DiagnosticsStore>().unwrap();
+    egui::Window::new("Diagnostics").show(ctx, |ui| {
+        let diagnostics = world.get_resource::<DiagnosticsStore>().unwrap();
 
-            for diag in diagnostics.iter() {
-                if let Some(value) = diag.smoothed() {
-                    ui.label(format!("{}: {:.2?}", diag.path(), value));
-                }
+        for diag in diagnostics.iter() {
+            if let Some(value) = diag.smoothed() {
+                ui.label(format!("{}: {:.2?}", diag.path(), value));
             }
-        });
+        }
+    });
 
     egui::Window::new("Inspector")
         .default_open(false)
-        .default_pos((10., 110.))
         .show(ctx, |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
                 bevy_inspector::ui_for_world(world, ui);

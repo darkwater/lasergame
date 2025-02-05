@@ -16,6 +16,10 @@ pub enum Action {
     Shoot,
     #[actionlike(Axis)]
     Zoom,
+
+    #[actionlike(DualAxis)]
+    DebugLook,
+    DebugLookActivate,
 }
 
 pub fn input_map() -> InputMap<Action> {
@@ -25,6 +29,8 @@ pub fn input_map() -> InputMap<Action> {
         .with_dual_axis(Action::Move, VirtualDPad::arrow_keys())
         .with(Action::Shoot, MouseButton::Left)
         .with_axis(Action::Zoom, MouseScrollAxis::Y)
+        .with_dual_axis(Action::DebugLook, MouseMove::default())
+        .with(Action::DebugLookActivate, MouseButton::Right)
         // gamepad
         .with_dual_axis(Action::Move, GamepadStick::LEFT)
         .with_dual_axis(Action::Look, GamepadStick::RIGHT)
@@ -90,6 +96,24 @@ pub fn try_shoot(
     for (entity, action_state) in query.iter() {
         if action_state.pressed(&Action::Shoot) {
             events.send(ShootActiveWeapon(entity));
+        }
+    }
+}
+
+pub fn update_debuglook(mut query: Query<(&ActionState<Action>, &mut CameraOffset)>) {
+    for (action_state, mut cam_offset) in query.iter_mut() {
+        if !action_state.pressed(&Action::DebugLookActivate) {
+            continue;
+        }
+
+        if let Some(look) = action_state.dual_axis_data(&Action::DebugLook) {
+            let mut view =
+                Transform::from_translation(cam_offset.offset).looking_at(Vec3::ZERO, Vec3::Z);
+
+            view.translation += view.up() * look.pair.y * 0.8;
+            view.translation += view.right() * look.pair.x * -0.6;
+
+            cam_offset.offset = view.translation;
         }
     }
 }
